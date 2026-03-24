@@ -2,19 +2,45 @@
 //
 
 #include <iostream>
+#include <windows.h>
+#include<string>
+
+float GetCPULoad() {
+    static FILETIME idleTimePrev = {}, kernelTimePrev = {}, userTimePrev = {};
+
+    FILETIME idleTime, kernelTime, userTime;
+    if (!GetSystemTimes(&idleTime, &kernelTime, &userTime)) return 0.0;
+
+    auto toUInt64 = [](FILETIME ft) {
+        return ((uint64_t)ft.dwHighDateTime << 32) | ft.dwLowDateTime;
+        };
+
+    uint64_t idleDiff = toUInt64(idleTime) - toUInt64(idleTimePrev);
+    uint64_t kernelDiff = toUInt64(kernelTime) - toUInt64(kernelTimePrev);
+    uint64_t userDiff = toUInt64(userTime) - toUInt64(userTimePrev);
+
+    idleTimePrev = idleTime;
+    kernelTimePrev = kernelTime;
+    userTimePrev = userTime;
+
+    uint64_t total = kernelDiff + userDiff;
+    return total ? (1.0 - (float)idleDiff / total) * 100.0 : 0.0;
+}
+
+
+
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    unsigned int c = 0;
+    std::string consoleline = "";
+    while (c!=10) {
+        consoleline=std::to_string(GetCPULoad());
+
+        std::cout << consoleline<<"\n";
+        c++;
+        Sleep(1000);
+    }
+    
+    return 0;
 }
-
-// Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
-// Отладка программы: F5 или меню "Отладка" > "Запустить отладку"
-
-// Советы по началу работы 
-//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
-//   2. В окне Team Explorer можно подключиться к системе управления версиями.
-//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
-//   4. В окне "Список ошибок" можно просматривать ошибки.
-//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
-//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.
