@@ -1,0 +1,129 @@
+using System;
+
+namespace AuthorizationModuleSimple
+{
+    class User
+    {
+        public string Login { get; set; }
+        public string Password { get; set; }
+        
+        public User(string login, string password)
+        {
+            Login = login;
+            Password = password;
+        }
+    }
+    
+    class AuthorizationSystem
+    {
+        private User[] users;
+        private int userCount;
+        
+        public AuthorizationSystem(int maxUsers = 100)
+        {
+            users = new User[maxUsers];
+            userCount = 0;
+            
+            AddUser("admin", "admin");
+            AddUser("test", "test");
+        }
+        
+        public bool AddUser(string login, string password)
+        {
+            if (FindUser(login) != null)
+                return false;
+                
+            users[userCount] = new User(login, password);
+            userCount++;
+            return true;
+        }
+        
+        public User FindUser(string login)
+        {
+            for (int i = 0; i < userCount; i++)
+            {
+                if (users[i].Login == login)
+                    return users[i];
+            }
+            return null;
+        }
+        
+        public bool Authenticate(string login, string password)
+        {
+            User user = FindUser(login);
+            return user != null && user.Password == password;
+        }
+        
+        public bool ChangePassword(string login, string oldPassword, string newPassword)
+        {
+            User user = FindUser(login);
+            if (user != null && user.Password == oldPassword)
+            {
+                user.Password = newPassword;
+                return true;
+            }
+            return false;
+        }
+        
+        public void ShowAllUsers()
+        {
+            Console.WriteLine($"\nВсего пользователей: {userCount}");
+            for (int i = 0; i < userCount; i++)
+            {
+                Console.WriteLine($"- {users[i].Login}");
+            }
+        }
+    }
+    
+    class Program
+    {
+        static void Main()
+        {
+            AuthorizationSystem auth = new AuthorizationSystem();
+            
+            while (true)
+            {
+                Console.WriteLine("\n1. Вход");
+                Console.WriteLine("2. Регистрация");
+                Console.WriteLine("3. Список пользователей");
+                Console.WriteLine("4. Выход");
+                Console.Write("Выбор: ");
+                
+                string choice = Console.ReadLine();
+                
+                if (choice == "1")
+                {
+                    Console.Write("Логин: ");
+                    string login = Console.ReadLine();
+                    Console.Write("Пароль: ");
+                    string password = Console.ReadLine();
+                    
+                    if (auth.Authenticate(login, password))
+                        Console.WriteLine($"Добро пожаловать, {login}!");
+                    else
+                        Console.WriteLine("Ошибка авторизации!");
+                }
+                else if (choice == "2")
+                {
+                    Console.Write("Новый логин: ");
+                    string login = Console.ReadLine();
+                    Console.Write("Пароль: ");
+                    string password = Console.ReadLine();
+                    
+                    if (auth.AddUser(login, password))
+                        Console.WriteLine("Регистрация успешна!");
+                    else
+                        Console.WriteLine("Логин уже существует!");
+                }
+                else if (choice == "3")
+                {
+                    auth.ShowAllUsers();
+                }
+                else if (choice == "4")
+                {
+                    break;
+                }
+            }
+        }
+    }
+}
